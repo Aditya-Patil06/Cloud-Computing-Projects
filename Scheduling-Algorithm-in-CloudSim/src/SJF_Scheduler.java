@@ -1,17 +1,17 @@
 package <package_name>;
 
-
 import org.cloudbus.cloudsim.*;
 import org.cloudbus.cloudsim.core.CloudSim;
-import org.cloudbus.cloudsim.provisioners.BwProvisionerSimple;
-import org.cloudbus.cloudsim.provisioners.PeProvisionerSimple;
-import org.cloudbus.cloudsim.provisioners.RamProvisionerSimple;
+
+//import org.cloudbus.cloudsim.provisioners.BwProvisionerSimple;
+//import org.cloudbus.cloudsim.provisioners.PeProvisionerSimple;
+//import org.cloudbus.cloudsim.provisioners.RamProvisionerSimple;
 //import utils.Constants;
 //import utils.DatacenterCreator;
 //import utils.GenerateMatrices;
+//import java.text.DecimalFormat;
+//import java.util.ArrayList;
 
-import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
@@ -69,6 +69,29 @@ public class SJF_Scheduler {
             list.add(cloudlet[i]);
         }
         return list;
+    }
+    private static String center(String text, int width) {
+        if (text.length() >= width) {
+            return text;
+        }
+
+        int totalPadding = width - text.length();
+        int leftPadding = totalPadding / 2;
+        int rightPadding = totalPadding - leftPadding;
+
+        StringBuilder result = new StringBuilder();
+
+        for (int i = 0; i < leftPadding; i++) {
+            result.append(" ");
+        }
+
+        result.append(text);
+
+        for (int i = 0; i < rightPadding; i++) {
+            result.append(" ");
+        }
+
+        return result.toString();
     }
 
     public static void main(String[] args) {
@@ -130,37 +153,54 @@ public class SJF_Scheduler {
      * @param list list of Cloudlets
      */
     private static void printCloudletList(List<Cloudlet> list) {
-        int size = list.size();
-        Cloudlet cloudlet;
 
-        String indent = "    ";
         Log.printLine();
         Log.printLine("========== OUTPUT ==========");
-        Log.printLine("Cloudlet ID" + indent + "STATUS" +
-                indent + "Data center ID" +
-                indent + "VM ID" +
-                indent + indent + "Time" +
-                indent + "Start Time" +
-                indent + "Finish Time" +
-                indent + "Waiting Time");
 
-        DecimalFormat dft = new DecimalFormat("###.##");
-        dft.setMinimumIntegerDigits(2);
-        for (int i = 0; i < size; i++) {
-            cloudlet = list.get(i);
-            Log.print(indent + dft.format(cloudlet.getCloudletId()) + indent + indent);
+        // Column widths
+        int cloudletIdWidth = 12;
+        int statusWidth = 12;
+        int dcWidth = 16;
+        int vmWidth = 10;
+
+        // Header
+        String header =
+                center("Cloudlet ID", cloudletIdWidth) +
+                center("STATUS", statusWidth) +
+                center("Data center ID", dcWidth) +
+                center("VM ID", vmWidth) +
+                String.format(
+                        "%12s%15s%13s%15s",
+                        "Time",
+                        "Start Time",
+                        "Finish Time",
+                        "Waiting Time"
+                );
+
+        Log.printLine(header);
+
+        // Data
+        for (Cloudlet cloudlet : list) {
 
             if (cloudlet.getCloudletStatus() == Cloudlet.SUCCESS) {
-                Log.print("SUCCESS");
 
-                Log.printLine(indent + indent + dft.format(cloudlet.getResourceId()) +
-                        indent + indent + indent + dft.format(cloudlet.getVmId()) +
-                        indent + indent + dft.format(cloudlet.getActualCPUTime()) +
-                        indent + indent + dft.format(cloudlet.getExecStartTime()) +
-                        indent + indent + indent + dft.format(cloudlet.getFinishTime())+
-                        indent + indent + indent + dft.format(cloudlet.getWaitingTime()));
+                String row =
+                        center(String.format("%02d", cloudlet.getCloudletId()), cloudletIdWidth) +
+                        center("SUCCESS", statusWidth) +
+                        center(String.format("%02d", cloudlet.getResourceId()), dcWidth) +
+                        center(String.format("%02d", cloudlet.getVmId()), vmWidth) +
+                        String.format(
+                                "%12.2f%13.2f%13.2f%15.2f",
+                                cloudlet.getActualCPUTime(),
+                                cloudlet.getExecStartTime(),
+                                cloudlet.getFinishTime(),
+                                cloudlet.getWaitingTime()
+                        );
+
+                Log.printLine(row);
             }
         }
+
         double makespan = calcMakespan(list);
         Log.printLine("Makespan using SJF: " + makespan);
     }
